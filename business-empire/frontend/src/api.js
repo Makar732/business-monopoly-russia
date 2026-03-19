@@ -1,18 +1,37 @@
 // frontend/src/api.js
 
+// ============================
+// На Railway фронт и бэк на ОДНОМ домене
+// Поэтому API_BASE — просто /api
+// ============================
 const API_BASE = '/api';
 
-// Получаем userId из Telegram WebApp
 function getUserId() {
   try {
     if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
       return window.Telegram.WebApp.initDataUnsafe.user.id.toString();
     }
   } catch (e) {}
-  return 'test_user_123'; // fallback для разработки
+  return 'test_user_' + Math.random().toString(36).substr(2, 6);
 }
 
-const userId = getUserId();
+// Кешируем userId чтобы не менялся
+let cachedUserId = null;
+function getStableUserId() {
+  if (!cachedUserId) {
+    cachedUserId = getUserId();
+    // Сохраняем в localStorage для стабильности
+    const stored = localStorage.getItem('userId');
+    if (stored) {
+      cachedUserId = stored;
+    } else {
+      localStorage.setItem('userId', cachedUserId);
+    }
+  }
+  return cachedUserId;
+}
+
+const userId = getStableUserId();
 
 export async function fetchPlayer() {
   const res = await fetch(`${API_BASE}/player?userId=${userId}`);
