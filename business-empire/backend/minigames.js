@@ -1,184 +1,103 @@
-// backend/game.js
+// backend/minigames.js
 
 // ============================
-// КОНФИГУРАЦИЯ ГОРОДОВ
-// Легко добавлять новые — просто добавь объект в массив
+// СИСТЕМА МИНИ-ИГР
+// Легко добавлять новые — создай функцию и добавь в GAMES
 // ============================
-const CITIES = {
-  moscow: {
-    id: 'moscow',
-    name: 'Москва',
-    lat: 55.7558,
-    lng: 37.6173,
-    costMultiplier: 1.5,    // дорогой город
-    incomeMultiplier: 1.8,  // но и доход выше
-    description: 'Столица — дорого, но прибыльно'
-  },
-  spb: {
-    id: 'spb',
-    name: 'Санкт-Петербург',
-    lat: 59.9343,
-    lng: 30.3351,
-    costMultiplier: 1.2,
-    incomeMultiplier: 1.4,
-    description: 'Культурная столица'
-  },
-  nn: {
-    id: 'nn',
-    name: 'Нижний Новгород',
-    lat: 56.2965,
-    lng: 43.9361,
-    costMultiplier: 0.8,    // дешёвый город
-    incomeMultiplier: 1.0,
-    description: 'Доступный старт для новичков'
+
+const WORK_COOLDOWN = 30000; // 30 секунд между играми
+
+// ============================
+// Мини-игра: Реакция (reaction)
+// Игрок должен нажать в нужный момент
+// ============================
+function processReactionGame(playerData, result) {
+  // result.reactionTime — время реакции в мс (от фронтенда)
+  const reactionTime = result.reactionTime;
+
+  let reward = 0;
+  let message = '';
+
+  if (reactionTime < 200) {
+    // Подозрительно быстро — возможно чит
+    reward = 0;
+    message = '⚠️ Слишком быстро! Попробуй ещё раз.';
+  } else if (reactionTime < 400) {
+    reward = 50;
+    message = '⚡ Невероятно! Отличная реакция!';
+  } else if (reactionTime < 700) {
+    reward = 30;
+    message = '👍 Хорошая реакция!';
+  } else if (reactionTime < 1000) {
+    reward = 15;
+    message = '😐 Неплохо, но можно лучше';
+  } else {
+    reward = 5;
+    message = '🐌 Медленно... Но монетки всё равно твои!';
   }
-};
 
-// ============================
-// ТИПЫ БИЗНЕСОВ
-// Легко добавлять новые — просто добавь объект
-// ============================
-const BUSINESS_TYPES = {
-  cafe: {
-    id: 'cafe',
-    name: '☕ Кафе',
-    baseCost: 100,
-    baseIncome: 2,  // coins в минуту
-    icon: '☕',
-    description: 'Уютное кафе с кофе и пирожками'
-  },
-  shop: {
-    id: 'shop',
-    name: '🏪 Магазин',
-    baseCost: 250,
-    baseIncome: 5,
-    icon: '🏪',
-    description: 'Продуктовый магазин у дома'
-  }
-};
-
-// ============================
-// ХРАНИЛИЩЕ ИГРОКОВ (in-memory)
-// Для MVP этого достаточно. Потом заменить на БД
-// ============================
-const players = {};
-
-// Создать или получить игрока
-function getPlayer(userId) {
-  if (!players[userId]) {
-    players[userId] = {
-      id: userId,
-      coins: 500,            // стартовые монеты
-      businesses: [],         // купленные бизнесы
-      totalPassiveIncome: 0,  // общий пассивный доход/мин
-      lastIncomeTime: Date.now(),
-      workCooldown: 0         // кулдаун мини-игр
-    };
-  }
-  return players[userId];
+  return { reward, message };
 }
 
 // ============================
-// Посчитать и начислить пассивный доход
-// Вызывается при каждом запросе игрока
+// Реестр мини-игр
+// Чтобы добавить новую — просто добавь сюда
 // ============================
-function collectPassiveIncome(userId) {
-  const player = getPlayer(userId);
+const GAMES = {
+  reaction: {
+    id: 'reaction',
+    name: '⚡ Реакция',
+    description: 'Нажми на кнопку как можно быстрее!',
+    process: processReactionGame
+  }
+  // Сюда легко добавить:
+  // memory: { ... },
+  // quiz: { ... },
+  // tapping: { ... }
+};
+
+// ============================
+// Обработка результата мини-игры
+// ============================
+function playGame(player, gameId, result) {
   const now = Date.now();
-  const minutesPassed = (now - player.lastIncomeTime) / 60000;
 
-  if (minutesPassed >= 1) {
-    const fullMinutes = Math.floor(minutesPassed);
-    const earned = fullMinutes * player.totalPassiveIncome;
-    player.coins += earned;
-    player.lastIncomeTime = now;
-
-    return {
-      earned,
-      minutes: fullMinutes
-    };
-  }
-
-  return { earned: 0, minutes: 0 };
-}
-
-// ============================
-// Купить бизнес
-// ============================
-function buyBusiness(userId, cityId, businessTypeId) {
-  const player = getPlayer(userId);
-  const city = CITIES[cityId];
-  const businessType = BUSINESS_TYPES[businessTypeId];
-
-  if (!city || !businessType) {
-    return { success: false, error: 'Город или бизнес не найден' };
-  }
-
-  // Считаем цену с учётом коэффициента города
-  const cost = Math.round(businessType.baseCost * city.costMultiplier);
-  const income = +(businessType.baseIncome * city.incomeMultiplier).toFixed(1);
-
-  if (player.coins < cost) {
+  // Проверяем кулдаун
+  if (player.workCooldown && now < player.workCooldown) {
+    const secondsLeft = Math.ceil((player.workCooldown - now) / 1000);
     return {
       success: false,
-      error: `Не хватает монет! Нужно ${cost}, у тебя ${Math.floor(player.coins)}`
+      error: `Подожди ${secondsLeft} сек. перед следующей игрой`
     };
   }
 
-  // Покупаем
-  player.coins -= cost;
+  const game = GAMES[gameId];
+  if (!game) {
+    return { success: false, error: 'Игра не найдена' };
+  }
 
-  const newBusiness = {
-    id: `${cityId}_${businessTypeId}_${Date.now()}`,
-    cityId,
-    cityName: city.name,
-    typeId: businessTypeId,
-    typeName: businessType.name,
-    icon: businessType.icon,
-    income,
-    boughtAt: Date.now()
-  };
+  // Обрабатываем результат
+  const { reward, message } = game.process(player, result);
 
-  player.businesses.push(newBusiness);
-
-  // Пересчитываем общий пассивный доход
-  player.totalPassiveIncome = player.businesses.reduce(
-    (sum, b) => sum + b.income, 0
-  );
+  // Начисляем награду
+  player.coins += reward;
+  player.workCooldown = now + WORK_COOLDOWN;
 
   return {
     success: true,
-    business: newBusiness,
-    cost,
-    newBalance: Math.floor(player.coins)
+    reward,
+    message,
+    newBalance: Math.floor(player.coins),
+    cooldownUntil: player.workCooldown
   };
 }
 
-// ============================
-// Получить инфо о городе для игрока
-// ============================
-function getCityInfo(cityId) {
-  const city = CITIES[cityId];
-  if (!city) return null;
-
-  // Формируем список бизнесов с ценами для этого города
-  const availableBusinesses = Object.values(BUSINESS_TYPES).map(bt => ({
-    ...bt,
-    cost: Math.round(bt.baseCost * city.costMultiplier),
-    income: +(bt.baseIncome * city.incomeMultiplier).toFixed(1)
+function getAvailableGames() {
+  return Object.values(GAMES).map(g => ({
+    id: g.id,
+    name: g.name,
+    description: g.description
   }));
-
-  return {
-    ...city,
-    businesses: availableBusinesses
-  };
 }
 
-module.exports = {
-  CITIES,
-  BUSINESS_TYPES,
-  getPlayer,
-  collectPassiveIncome,
-  buyBusiness,
-  getCityInfo
-};
+module.exports = { playGame, getAvailableGames, WORK_COOLDOWN };
