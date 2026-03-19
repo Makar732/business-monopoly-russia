@@ -1,18 +1,16 @@
 {
   "name": "business-empire",
-  "version": "1.0.0",
-  "description": "Business Empire Game",
-  "main": "backend/index.js",
+  "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\" \"npm run bot:dev\"",
-    "backend:dev": "cd backend && node index.js",
-    "frontend:dev": "cd frontend && npm run dev",
-    "bot:dev": "cd bot && node index.js"
+    "bot": "node bot/index.js",
+    "backend": "node backend/index.js",
+    "frontend": "cd frontend && npm run dev",
+    "install:all": "npm install && cd frontend && npm install"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "concurrently": "^8.2.0"
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "telegraf": "^4.15.3"
   }
 }
