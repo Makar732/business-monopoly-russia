@@ -1,2 +1,0 @@
-// MapControls.tsx
-export {};

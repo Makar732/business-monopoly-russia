@@ -1,2 +1,0 @@
-// daily.controller.ts
-export {};

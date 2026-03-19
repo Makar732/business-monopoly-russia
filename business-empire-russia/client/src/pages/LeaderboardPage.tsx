@@ -1,2 +1,0 @@
-// LeaderboardPage.tsx
-export {};

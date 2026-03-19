@@ -1,2 +1,0 @@
-// businesses.controller.ts
-export {};

@@ -1,2 +1,0 @@
-// cities.module.ts
-export {};

@@ -1,2 +1,0 @@
-// TopBar.tsx
-export {};

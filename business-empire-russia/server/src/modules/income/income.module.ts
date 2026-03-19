@@ -1,2 +1,0 @@
-// income.module.ts
-export {};

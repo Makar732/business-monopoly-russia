@@ -1,2 +1,0 @@
-// ProfilePage.tsx
-export {};

@@ -1,2 +1,0 @@
-// usePassiveIncome.ts
-export {};

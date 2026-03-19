@@ -1,2 +1,0 @@
-// MapPage.tsx
-export {};

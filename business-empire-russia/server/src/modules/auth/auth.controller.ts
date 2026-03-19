@@ -1,2 +1,0 @@
-// auth.controller.ts
-export {};

@@ -1,2 +1,0 @@
-// PuzzleGame.tsx
-export {};

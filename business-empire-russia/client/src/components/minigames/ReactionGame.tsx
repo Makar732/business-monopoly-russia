@@ -1,2 +1,0 @@
-// ReactionGame.tsx
-export {};

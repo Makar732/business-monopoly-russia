@@ -1,2 +1,0 @@
-// userSlice.ts
-export {};

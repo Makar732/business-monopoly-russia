@@ -1,2 +1,0 @@
-// database.config.ts
-export {};

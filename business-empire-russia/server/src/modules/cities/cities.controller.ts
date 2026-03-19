@@ -1,2 +1,0 @@
-// cities.controller.ts
-export {};

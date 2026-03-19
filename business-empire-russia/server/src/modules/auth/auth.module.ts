@@ -1,2 +1,0 @@
-// auth.module.ts
-export {};

@@ -1,2 +1,0 @@
-// UpgradeModal.tsx
-export {};

@@ -1,2 +1,0 @@
-// income.service.ts
-export {};

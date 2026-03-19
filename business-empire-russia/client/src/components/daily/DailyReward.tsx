@@ -1,2 +1,0 @@
-// DailyReward.tsx
-export {};

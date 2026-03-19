@@ -1,2 +1,0 @@
-// CityMarker.tsx
-export {};

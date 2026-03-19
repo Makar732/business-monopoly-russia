@@ -1,2 +1,0 @@
-// businesses.ts
-export {};

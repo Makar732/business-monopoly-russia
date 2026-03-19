@@ -1,2 +1,0 @@
-// CoinCounter.tsx
-export {};

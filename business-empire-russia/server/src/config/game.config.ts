@@ -1,2 +1,0 @@
-// game.config.ts
-export {};

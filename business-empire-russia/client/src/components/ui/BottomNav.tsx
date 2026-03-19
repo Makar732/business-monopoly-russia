@@ -1,2 +1,0 @@
-// BottomNav.tsx
-export {};

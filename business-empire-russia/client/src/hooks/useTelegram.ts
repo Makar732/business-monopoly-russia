@@ -1,2 +1,0 @@
-// useTelegram.ts
-export {};

@@ -1,2 +1,0 @@
-// user.entity.ts
-export {};

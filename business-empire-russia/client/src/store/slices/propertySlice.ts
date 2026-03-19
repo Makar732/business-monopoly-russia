@@ -1,2 +1,0 @@
-// propertySlice.ts
-export {};

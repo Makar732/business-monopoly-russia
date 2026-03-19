@@ -1,2 +1,0 @@
-// properties.module.ts
-export {};

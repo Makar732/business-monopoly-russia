@@ -1,2 +1,0 @@
-// leaderboard.service.ts
-export {};
